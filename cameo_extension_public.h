@@ -70,10 +70,21 @@ struct CCameoExtensionContext_ {
 //   is fine.
 // - context_create, filled with a pointer to a function that creates
 //   an extension context (see comment below).
-#if defined(__cplusplus)
-extern "C"
+
+#if defined(_WIN32)
+#define PUBLIC_EXPORT __declspec(dllexport)
+#else
+#define PUBLIC_EXPORT __attribute__((visibility("default")))
 #endif
-CCameoExtension* cameo_extension_init(int32_t api_version);
+
+#if defined(__cplusplus)
+#define EXTERN_C extern "C"
+#else
+#define EXTERN_C
+#endif
+
+EXTERN_C PUBLIC_EXPORT CCameoExtension* cameo_extension_init(
+      int32_t api_version);
 
 // A CCameoExtension structure holds the global state for a extension.
 // Due to the multithreaded way Cameo is written, one should not
@@ -101,6 +112,10 @@ static void cameo_extension_context_post_message(
 
   context->api->post_message(context, message);
 }
+
+#undef PUBLIC_EXPORT
+#undef EXTERN_C
+
 #endif  // INTERNAL_IMPLEMENTATION
 
 #endif  // CAMEO_EXTENSIONS_PUBLIC_CAMEO_EXTENSION_PUBLIC_H_
