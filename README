@@ -36,5 +36,5 @@ How to Use
 4. Run the `run-brackets.sh` script, passing the path to the Crosswalk
    executable and the directory where Brackets is located. For example:
 
-        $ ./run-brackets.sh ~/chrome/out/Release/xwalk ~/brackets/src
+        $ ./run-brackets.sh ~/chrome/out/Release/xwalk ~/brackets
 
