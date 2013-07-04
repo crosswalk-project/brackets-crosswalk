@@ -1,0 +1,40 @@
+Crosswalk Brackets Extension
+----------------------------
+
+This directory contains code to build an extension to allow running
+Brackets[1] (an open source code editor) under Crosswalk.
+
+Since the official Brackets shell focuses on Windows and MacOS X, this
+plugin offers a solution that works under Linux. It implements most APIs
+that Brackets shell implements, including I/O, menus, and live browser
+previews.
+
+Some things (such as file dialogs) are not implemented yet, but work is
+underway in Crosswalk to support these. Consider this an early alpha
+version.
+
+[1]: http://brackets.io/
+
+How to Build
+------------
+
+Requirements:
+ - GTK+-2.0 headers and libraries, with pkg-config
+ - util-linux (for hexdump(1))
+ - make
+ - sed
+ - a working C++ compiler/linker setup
+
+Just run `make`. A `brackets.so` file should be created.
+
+How to Use
+----------
+
+1. Follow the Brackets setup instructions;
+2. Create a directory `extensions` under `src` inside Brackets;
+3. Copy `brackets.so` to the `extensions` directory;
+4. Run the `run-brackets.sh` script, passing the path to the Crosswalk
+   executable and the directory where Brackets is located. For example:
+
+        $ ./run-brackets.sh ~/chrome/out/Release/xwalk ~/brackets/src
+
