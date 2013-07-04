@@ -9,7 +9,7 @@ if [ ! -x "$1" -o ! -d "$2" ]; then
     exit 1
 fi
 
-CURRENT_DIRECTORY=`dirname $0`
+CURRENT_DIRECTORY=$(realpath $(dirname $0))
 XWALK_EXECUTABLE="$1"
 BRACKETS_PATH="$2"
 
@@ -27,7 +27,7 @@ if [ ! -x "$CURRENT_DIRECTORY/brackets.so" ]; then
     fi
 fi
 
-exec gdb --args $XWALK_EXECUTABLE \
+exec $XWALK_EXECUTABLE \
 	--remote-debugging-port=9234 \
 	--disable-web-security \
 	--allow-file-access-from-files \
