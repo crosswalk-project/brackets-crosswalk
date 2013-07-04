@@ -30,8 +30,8 @@ Just run `make`. A `brackets.so` file should be created.
 How to Use
 ----------
 
-1. Follow the Brackets setup instructions;
-2. Create a directory `extensions` under `src` inside Brackets;
+1. Follow the Crosswalk setup instructions;
+2. Follow the Brackets setup instructions;
 3. Run the `run-brackets.sh` script, passing the path to the Crosswalk
    executable and the directory where Brackets is located. For example:
 
