@@ -9,6 +9,7 @@ if [ ! -x "$1" -o ! -d "$2" ]; then
     exit 1
 fi
 
+CURRENT_DIRECTORY=`dirname $0`
 XWALK_EXECUTABLE="$1"
 BRACKETS_PATH="$2"
 
@@ -17,22 +18,18 @@ if [ ! -e "$BRACKETS_PATH/src/index.html" ]; then
     exit 1
 fi
 
-BRACKETS_EXT_PATH="$BRACKETS_PATH/src/extensions/brackets.so"
-
-if [ ! -x "$BRACKETS_EXT_PATH" ]; then
-    echo "Brackets directory does not contain extension. Please see README."
-    exit 1
+if [ ! -x "$CURRENT_DIRECTORY/brackets.so" ]; then
+    echo "Brackets extension not found, trying to build."
+    if ! make; then
+        echo "Couldn't build extension, please file a bug report at"
+        echo "  https://github.com/otcshare/brackets-crosswalk"
+        exit 1
+    fi
 fi
 
-if [ "brackets.so" -nt "$BRACKETS_EXT_PATH" ]; then
-    echo "---------------------------------------------------------"
-    echo "Running with an extension older than the currently built."
-    echo "Please update $BRACKETS_EXT_PATH."
-    echo "---------------------------------------------------------"
-fi
-
-exec $XWALK_EXECUTABLE \
+exec gdb --args $XWALK_EXECUTABLE \
 	--remote-debugging-port=9234 \
 	--disable-web-security \
 	--allow-file-access-from-files \
+	--external-extensions-path=$CURRENT_DIRECTORY \
 	$BRACKETS_PATH/src/index.html

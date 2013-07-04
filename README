@@ -32,8 +32,7 @@ How to Use
 
 1. Follow the Brackets setup instructions;
 2. Create a directory `extensions` under `src` inside Brackets;
-3. Copy `brackets.so` to the `extensions` directory;
-4. Run the `run-brackets.sh` script, passing the path to the Crosswalk
+3. Run the `run-brackets.sh` script, passing the path to the Crosswalk
    executable and the directory where Brackets is located. For example:
 
         $ ./run-brackets.sh ~/chrome/out/Release/xwalk ~/brackets
