@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef CAMEO_SRC_BRACKETS_BRACKETS_PLATFORM_H_
-#define CAMEO_SRC_BRACKETS_BRACKETS_PLATFORM_H_
+#ifndef PLATFORM_H_
+#define PLATFORM_H_
 
 #include <string>
 #include <vector>
@@ -43,4 +43,4 @@ ErrorCode GetRemoteDebuggingPort(int& port);
 
 }  // namespace platform
 
-#endif  // CAMEO_SRC_BRACKETS_BRACKETS_PLATFORM_H_
+#endif  // PLATFORM_H_

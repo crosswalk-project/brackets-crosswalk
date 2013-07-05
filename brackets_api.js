@@ -40,7 +40,7 @@ brackets.debugging_port = 0;
 brackets._postMessage = (function() {
   brackets._callbacks = {};
   brackets._next_reply_id = 0;
-  cameo.setMessageListener('brackets', function(json) {
+  xwalk.setMessageListener('brackets', function(json) {
     var msg = JSON.parse(json);
     var reply_id = msg._reply_id;
     var callback = brackets._callbacks[reply_id];
@@ -57,7 +57,7 @@ brackets._postMessage = (function() {
     brackets._next_reply_id += 1;
     brackets._callbacks[reply_id] = callback;
     msg._reply_id = reply_id.toString();
-    cameo.postMessage('brackets', JSON.stringify(msg));
+    xwalk.postMessage('brackets', JSON.stringify(msg));
   };
 })();
 
@@ -215,33 +215,33 @@ brackets.fs.isNetworkDrive = function(path, callback) {
   });
 };
 
-cameo.menu = cameo.menu || {};
-cameo.menu.onActivatedMenuItem = function(item) {
+xwalk.menu = xwalk.menu || {};
+xwalk.menu.onActivatedMenuItem = function(item) {
     brackets.shellAPI.executeCommand(item);
 };
 
 brackets.app.addMenu = function(title, id, position, relativeId, callback) {
-  cameo.menu.addMenu(title, id, position, relativeId);
+  xwalk.menu.addMenu(title, id, position, relativeId);
   callback(brackets.app.NO_ERROR);
 };
 
 brackets.app.addMenuItem = function(parentId, title, id, key, displayStr, position, relativeId, callback) {
-  cameo.menu.addMenuItem(parentId, title, id, key, displayStr, position, relativeId);
+  xwalk.menu.addMenuItem(parentId, title, id, key, displayStr, position, relativeId);
   callback(brackets.app.NO_ERROR);
 }
 
 brackets.app.setMenuTitle = function(commandid, title, callback) {
-  cameo.menu.setMenuTitle(commandid, title);
+  xwalk.menu.setMenuTitle(commandid, title);
   callback(brackets.app.NO_ERROR);
 }
 
 brackets.app.setMenuItemState = function(commandid, enabled, checked, callback) {
-  cameo.menu.setMenuItemState(commandid, enabled, checked);
+  xwalk.menu.setMenuItemState(commandid, enabled, checked);
   callback(brackets.app.NO_ERROR);
 }
 
 brackets.app.setMenuItemShortcut = function(commandid, shortcut, displayStr, callback) {
-  cameo.menu.setMenuItemShortcut(commandid, shortcut, displayStr);
+  xwalk.menu.setMenuItemShortcut(commandid, shortcut, displayStr);
   callback(brackets.app.NO_ERROR);
 }
 
@@ -272,13 +272,13 @@ brackets.app.getRemoteDebuggingPort = function() {
   return brackets.debugging_port;
 };
 
-cameo.dialog = cameo.dialog || {};
+xwalk.dialog = xwalk.dialog || {};
 brackets.fs.showOpenDialog = function (allowMultipleSelection, chooseDirectory, title, initialPath, fileTypes, callback) {
-  cameo.dialog.showOpenDialog(allowMultipleSelection, chooseDirectory,
+  xwalk.dialog.showOpenDialog(allowMultipleSelection, chooseDirectory,
      title || 'Open', initialPath || '',
      fileTypes ? fileTypes.join(' ') : '', callback);
 }
 
 brackets.fs.showSaveDialog = function (title, initialPath, proposedNewFilename, callback) {
-  cameo.dialog.showSaveDialog(title || 'Save As', initialPath || '', proposedNewFilename || '', callback);
+  xwalk.dialog.showSaveDialog(title || 'Save As', initialPath || '', proposedNewFilename || '', callback);
 }

@@ -23,7 +23,7 @@ BracketsExtension::HandlerFunc BracketsExtension::GetHandler(const std::string& 
   return iter->second;
 }
 
-void BracketsExtensionContext::HandleMessage(CCameoExtensionContext* self,
+void BracketsExtensionContext::HandleMessage(CXWalkExtensionContext* self,
                                              const char* message) {
   picojson::value input;
   picojson::value output;
@@ -48,10 +48,10 @@ void BracketsExtensionContext::HandleMessage(CCameoExtensionContext* self,
   handler(input_map, output_map);
 
   std::string result = output.serialize();
-  cameo_extension_context_post_message(self, result.c_str());
+  xwalk_extension_context_post_message(self, result.c_str());
 }
 
-void BracketsExtensionContext::Destroy(CCameoExtensionContext* self) {
+void BracketsExtensionContext::Destroy(CXWalkExtensionContext* self) {
   delete reinterpret_cast<BracketsExtensionContext*>(self);
 }
 
@@ -61,19 +61,19 @@ BracketsExtensionContext::BracketsExtensionContext(BracketsExtension *extension)
   handle_message = &HandleMessage;
 }
 
-void BracketsExtension::Shutdown(CCameoExtension* self) {
+void BracketsExtension::Shutdown(CXWalkExtension* self) {
   delete reinterpret_cast<BracketsExtension*>(self);
 }
 
-const char* BracketsExtension::GetJavascript(CCameoExtension*) {
+const char* BracketsExtension::GetJavascript(CXWalkExtension*) {
   return kGeneratedSource;
 }
 
-CCameoExtensionContext* BracketsExtension::CreateContext(CCameoExtension* self) {
+CXWalkExtensionContext* BracketsExtension::CreateContext(CXWalkExtension* self) {
   BracketsExtension* extension = reinterpret_cast<BracketsExtension*>(self);
   BracketsExtensionContext* context = new BracketsExtensionContext(extension);
 
-  return reinterpret_cast<CCameoExtensionContext*>(context);
+  return reinterpret_cast<CXWalkExtensionContext*>(context);
 }
 
 template <typename T> static T GetValueOrDefault(const picojson::object& object,
@@ -257,7 +257,7 @@ BracketsExtension::BracketsExtension() {
   InitializeHandlerMap();
 }
 
-extern "C" CCameoExtension* cameo_extension_init(int32_t api_version) {
+extern "C" CXWalkExtension* xwalk_extension_init(int32_t api_version) {
   if (api_version < 1)
     return NULL;
   return new BracketsExtension();

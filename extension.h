@@ -1,16 +1,16 @@
 #ifndef BRACKETS_EXTENSION_H
 #define BRACKETS_EXTENSION_H
 
-#include "cameo_extension_public.h"
+#include "xwalk_extension_public.h"
 #include "picojson.h"
 
 struct BracketsExtensionContext;
 
-struct BracketsExtension : public CCameoExtension {
+struct BracketsExtension : public CXWalkExtension {
 private:
-  static CCameoExtensionContext* CreateContext(CCameoExtension* self);
-  static const char* GetJavascript(CCameoExtension* self);
-  static void Shutdown(CCameoExtension* self);
+  static CXWalkExtensionContext* CreateContext(CXWalkExtension* self);
+  static const char* GetJavascript(CXWalkExtension* self);
+  static void Shutdown(CXWalkExtension* self);
 
   void InitializeHandlerMap();
 
@@ -27,12 +27,12 @@ public:
   friend struct BracketsExtensionContext;
 };
 
-struct BracketsExtensionContext : public CCameoExtensionContext {
+struct BracketsExtensionContext : public CXWalkExtensionContext {
 private:
   BracketsExtension *extension_;
 
-  static void HandleMessage(CCameoExtensionContext* self, const char* message);
-  static void Destroy(CCameoExtensionContext* self);
+  static void HandleMessage(CXWalkExtensionContext* self, const char* message);
+  static void Destroy(CXWalkExtensionContext* self);
 
 public:
   BracketsExtensionContext(BracketsExtension *extension);
