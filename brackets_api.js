@@ -271,3 +271,14 @@ brackets.app.getPendingFilesToOpen = function(callback) {
 brackets.app.getRemoteDebuggingPort = function() {
   return brackets.debugging_port;
 };
+
+cameo.dialog = cameo.dialog || {};
+brackets.fs.showOpenDialog = function (allowMultipleSelection, chooseDirectory, title, initialPath, fileTypes, callback) {
+  cameo.dialog.showOpenDialog(allowMultipleSelection, chooseDirectory,
+     title || 'Open', initialPath || '',
+     fileTypes ? fileTypes.join(' ') : '', callback);
+}
+
+brackets.fs.showSaveDialog = function (title, initialPath, proposedNewFilename, callback) {
+  cameo.dialog.showSaveDialog(title || 'Save As', initialPath || '', proposedNewFilename || '', callback);
+}
