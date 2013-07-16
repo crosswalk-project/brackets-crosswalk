@@ -272,13 +272,14 @@ brackets.app.getRemoteDebuggingPort = function() {
   return brackets.debugging_port;
 };
 
-xwalk.dialog = xwalk.dialog || {};
+xwalk.experimental = xwalk.experimental || {};
+xwalk.experimental.dialog = xwalk.experimental.dialog || {};
 brackets.fs.showOpenDialog = function (allowMultipleSelection, chooseDirectory, title, initialPath, fileTypes, callback) {
-  xwalk.dialog.showOpenDialog(allowMultipleSelection, chooseDirectory,
+  xwalk.experimental.dialog.showOpenDialog(allowMultipleSelection, chooseDirectory,
      title || 'Open', initialPath || '',
      fileTypes ? fileTypes.join(' ') : '', callback);
 }
 
 brackets.fs.showSaveDialog = function (title, initialPath, proposedNewFilename, callback) {
-  xwalk.dialog.showSaveDialog(title || 'Save As', initialPath || '', proposedNewFilename || '', callback);
+  xwalk.experimental.dialog.showSaveDialog(title || 'Save As', initialPath || '', proposedNewFilename || '', callback);
 }
