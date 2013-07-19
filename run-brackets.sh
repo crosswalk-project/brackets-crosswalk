@@ -9,7 +9,7 @@ if [ ! -x "$1" -o ! -d "$2" ]; then
     exit 1
 fi
 
-CURRENT_DIRECTORY=$(realpath $(dirname $0))
+CURRENT_DIRECTORY=$(readlink -f $(dirname $0))
 XWALK_EXECUTABLE="$1"
 BRACKETS_PATH="$2"
 
