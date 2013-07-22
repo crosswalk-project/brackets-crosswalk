@@ -19,50 +19,50 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-var brackets = { app: {}, fs: {} };
+exports.app = {
+  NO_ERROR: 0,
+};
 
-brackets.app.NO_ERROR = 0;
+exports.fs = {
+  NO_ERROR: 0,
+  ERR_UNKNOWN: 1,
+  ERR_INVALID_PARAMS: 2,
+  ERR_NOT_FOUND: 3,
+  ERR_CANT_READ: 4,
+  ERR_UNSUPPORTED_ENCODING: 5,
+  ERR_CANT_WRITE: 6,
+  ERR_OUT_OF_SPACE: 7,
+  ERR_NOT_FILE: 8,
+  ERR_NOT_DIRECTORY: 9,
+  ERR_FILE_EXISTS: 10,
+};
 
-brackets.fs.NO_ERROR = 0;
-brackets.fs.ERR_UNKNOWN = 1;
-brackets.fs.ERR_INVALID_PARAMS = 2;
-brackets.fs.ERR_NOT_FOUND = 3;
-brackets.fs.ERR_CANT_READ = 4;
-brackets.fs.ERR_UNSUPPORTED_ENCODING = 5;
-brackets.fs.ERR_CANT_WRITE = 6;
-brackets.fs.ERR_OUT_OF_SPACE = 7;
-brackets.fs.ERR_NOT_FILE = 8;
-brackets.fs.ERR_NOT_DIRECTORY = 9;
-brackets.fs.ERR_FILE_EXISTS = 10;
-
-brackets.debugging_port = 0;
-
-brackets._postMessage = (function() {
-  brackets._callbacks = {};
-  brackets._next_reply_id = 0;
-  xwalk.setMessageListener('brackets', function(json) {
+var postMessage = (function() {
+  var callbacks = {};
+  var next_reply_id = 0;
+  extension.setMessageListener(function(json) {
     var msg = JSON.parse(json);
     var reply_id = msg._reply_id;
-    var callback = brackets._callbacks[reply_id];
+    var callback = callbacks[reply_id];
     if (callback) {
       delete msg._reply_id;
-      delete brackets._callbacks[reply_id];
+      delete callbacks[reply_id];
       callback(msg);
     } else {
       console.log('Invalid reply_id received from Brackets extension: ' + reply_id);
     }
   });
   return function(msg, callback) {
-    var reply_id = brackets._next_reply_id;
-    brackets._next_reply_id += 1;
-    brackets._callbacks[reply_id] = callback;
+    var reply_id = next_reply_id;
+    next_reply_id += 1;
+    callbacks[reply_id] = callback;
     msg._reply_id = reply_id.toString();
-    xwalk.postMessage('brackets', JSON.stringify(msg));
-  };
+    extension.postMessage(JSON.stringify(msg));
+  }
 })();
 
 // PROPERTIES
-Object.defineProperty(brackets.app, "language", {
+Object.defineProperty(exports.app, "language", {
   writeable: false,
   get : function() { return (navigator.language).toLowerCase(); },
   enumerable : true,
@@ -70,31 +70,32 @@ Object.defineProperty(brackets.app, "language", {
 });
 
 // SETUP MESSAGES
+var debugging_port = 0;
 var msg = {
   'cmd': 'GetRemoteDebuggingPort'
 };
-brackets._postMessage(msg, function(r) {
-  brackets.debugging_port = r.debugging_port;
+postMessage(msg, function(r) {
+  debugging_port = r.debugging_port;
 });
 
 // API
-brackets.fs.readFile = function(path, encoding, callback) {
+exports.fs.readFile = function(path, encoding, callback) {
   var msg = {
     'cmd': 'ReadFile',
     'path': path,
     'encoding': encoding
   };
-  brackets._postMessage(msg, function(r) {
+  postMessage(msg, function(r) {
     callback(r.error, r.data);
   });
 };
 
-brackets.fs.stat = function(path, callback) {
+exports.fs.stat = function(path, callback) {
   var msg = {
     'cmd': 'GetFileModificationTime',
     'path': path
   };
-  brackets._postMessage(msg, function (r) {
+  postMessage(msg, function (r) {
     callback(r.error, {
       isFile: function () {
         return !r.is_dir;
@@ -107,110 +108,110 @@ brackets.fs.stat = function(path, callback) {
   });
 };
 
-brackets.fs.readdir = function(path, callback) {
+exports.fs.readdir = function(path, callback) {
   var msg = {
     'cmd': 'ReadDir',
     'path': path
   };
-  brackets._postMessage(msg, function(r) {
+  postMessage(msg, function(r) {
     callback(r.error, r.files)
   });
 };
 
-brackets.fs.writeFile = function(path, data, encoding, callback) {
+exports.fs.writeFile = function(path, data, encoding, callback) {
   var msg = {
     'cmd': 'WriteFile',
     'path': path,
     'data': data,
     'encoding': encoding
   };
-  brackets._postMessage(msg, function(r) {
+  postMessage(msg, function(r) {
     callback(r.error);
   });
 };
 
-brackets.app.openLiveBrowser = function(url, enableRemoteDebugging, callback) {
+exports.app.openLiveBrowser = function(url, enableRemoteDebugging, callback) {
   var msg = {
     'cmd': 'OpenLiveBrowser',
     'url': url
   };
-  brackets._postMessage(msg, function(r) {
+  postMessage(msg, function(r) {
     callback(r.error);
   });
 };
 
-brackets.app.openURLInDefaultBrowser = function(callback, url) {
+exports.app.openURLInDefaultBrowser = function(callback, url) {
   var msg = {
     'cmd': 'OpenURLInDefaultBrowser',
     'url': url
   };
-  brackets._postMessage(msg, function(r) {
+  postMessage(msg, function(r) {
     callback(r.error);
   });
 };
 
-brackets.fs.rename = function(oldPath, newPath, callback) {
+exports.fs.rename = function(oldPath, newPath, callback) {
   var msg = {
     'cmd': 'Rename',
     'oldPath': oldPath,
     'newPath': newPath
   };
-  brackets._postMessage(msg, function(r) {
+  postMessage(msg, function(r) {
     callback(r.error);
   });
 };
 
-brackets.app.getApplicationSupportDirectory = function() {
+exports.app.getApplicationSupportDirectory = function() {
   // FIXME(cmarcelo): Synchronous function. We need to store this
   // value when initializing the plugin.
   return '/tmp/brackets-support';
 };
 
-brackets.app.getNodeState = function(callback) {
+exports.app.getNodeState = function(callback) {
   callback(true, 0);
 };
 
-brackets.app.quit = function() {
+exports.app.quit = function() {
   window.close();
 };
 
-brackets.fs.makedir = function(path, mode, callback) {
+exports.fs.makedir = function(path, mode, callback) {
   var msg = {
     'cmd': 'MakeDir',
     'path': path,
     'mode': mode
   };
-  brackets._postMessage(msg, function(r) {
+  postMessage(msg, function(r) {
     callback(r.error);
   });
 };
 
-brackets.fs.unlink = function(path, callback) {
+exports.fs.unlink = function(path, callback) {
   var msg = {
     'cmd': 'DeleteFileOrDirectory',
     'path': path
   };
-  brackets._postMessage(msg, function(r) {
+  postMessage(msg, function(r) {
     callback(r.error);
   });
 };
 
-brackets.fs.moveToTrash = function(path, callback) {
+exports.fs.moveToTrash = function(path, callback) {
   var msg = {
     'cmd': 'MoveFileOrDirectoryToTrash',
     'path': path
   };
-  brackets._postMessage(msg, function(r) {
+  postMessage(msg, function(r) {
     callback(r.error);
   });
 };
 
-brackets.fs.isNetworkDrive = function(path, callback) {
+exports.fs.isNetworkDrive = function(path, callback) {
   var msg = {
     'cmd': 'IsNetworkDrive',
     'path': path
   };
-  brackets._postMessage(msg, function(r) {
+  postMessage(msg, function(r) {
     callback(r.error, r.is_network_drive);
   });
 };
@@ -220,66 +221,66 @@ xwalk.menu.onActivatedMenuItem = function(item) {
     brackets.shellAPI.executeCommand(item);
 };
 
-brackets.app.addMenu = function(title, id, position, relativeId, callback) {
+exports.app.addMenu = function(title, id, position, relativeId, callback) {
   xwalk.menu.addMenu(title, id, position, relativeId);
-  callback(brackets.app.NO_ERROR);
+  callback(exports.app.NO_ERROR);
 };
 
-brackets.app.addMenuItem = function(parentId, title, id, key, displayStr, position, relativeId, callback) {
+exports.app.addMenuItem = function(parentId, title, id, key, displayStr, position, relativeId, callback) {
   xwalk.menu.addMenuItem(parentId, title, id, key, displayStr, position, relativeId);
-  callback(brackets.app.NO_ERROR);
+  callback(exports.app.NO_ERROR);
 }
 
-brackets.app.setMenuTitle = function(commandid, title, callback) {
+exports.app.setMenuTitle = function(commandid, title, callback) {
   xwalk.menu.setMenuTitle(commandid, title);
-  callback(brackets.app.NO_ERROR);
+  callback(exports.app.NO_ERROR);
 }
 
-brackets.app.setMenuItemState = function(commandid, enabled, checked, callback) {
+exports.app.setMenuItemState = function(commandid, enabled, checked, callback) {
   xwalk.menu.setMenuItemState(commandid, enabled, checked);
-  callback(brackets.app.NO_ERROR);
+  callback(exports.app.NO_ERROR);
 }
 
-brackets.app.setMenuItemShortcut = function(commandid, shortcut, displayStr, callback) {
+exports.app.setMenuItemShortcut = function(commandid, shortcut, displayStr, callback) {
   xwalk.menu.setMenuItemShortcut(commandid, shortcut, displayStr);
-  callback(brackets.app.NO_ERROR);
+  callback(exports.app.NO_ERROR);
 }
 
-brackets.app.showOSFolder = function(path, callback) {
+exports.app.showOSFolder = function(path, callback) {
   var msg = {
     'cmd': 'ShowOSFolder',
     'path': path
   };
-  brackets._postMessage(msg, function(r) {
+  postMessage(msg, function(r) {
     callback(r.error);
   });
 };
 
-brackets.app.showExtensionsFolder = function(appURL, callback) {
-  return brackets.app.showOSFolder(brackets.app.getApplicationSupportDirectory() + '/extensions', callback);
+exports.app.showExtensionsFolder = function(appURL, callback) {
+  return exports.app.showOSFolder(exports.app.getApplicationSupportDirectory() + '/extensions', callback);
 };
 
-brackets.app.getPendingFilesToOpen = function(callback) {
+exports.app.getPendingFilesToOpen = function(callback) {
   var msg = {
     'cmd': 'GetPendingFilesToOpen'
   };
-  brackets._postMessage(msg, function(r) {
+  postMessage(msg, function(r) {
     callback(r.error, r.files);
   });
 };
 
-brackets.app.getRemoteDebuggingPort = function() {
-  return brackets.debugging_port;
+exports.app.getRemoteDebuggingPort = function() {
+  return debugging_port;
 };
 
 xwalk.experimental = xwalk.experimental || {};
 xwalk.experimental.dialog = xwalk.experimental.dialog || {};
-brackets.fs.showOpenDialog = function (allowMultipleSelection, chooseDirectory, title, initialPath, fileTypes, callback) {
+exports.fs.showOpenDialog = function (allowMultipleSelection, chooseDirectory, title, initialPath, fileTypes, callback) {
   xwalk.experimental.dialog.showOpenDialog(allowMultipleSelection, chooseDirectory,
      title || 'Open', initialPath || '',
      fileTypes ? fileTypes.join(' ') : '', function(err, file) { callback(err, [file]); });
 }
 
-brackets.fs.showSaveDialog = function (title, initialPath, proposedNewFilename, callback) {
+exports.fs.showSaveDialog = function (title, initialPath, proposedNewFilename, callback) {
   xwalk.experimental.dialog.showSaveDialog(title || 'Save As', initialPath || '', proposedNewFilename || '', callback);
 }
