@@ -277,7 +277,7 @@ xwalk.experimental.dialog = xwalk.experimental.dialog || {};
 brackets.fs.showOpenDialog = function (allowMultipleSelection, chooseDirectory, title, initialPath, fileTypes, callback) {
   xwalk.experimental.dialog.showOpenDialog(allowMultipleSelection, chooseDirectory,
      title || 'Open', initialPath || '',
-     fileTypes ? fileTypes.join(' ') : '', callback);
+     fileTypes ? fileTypes.join(' ') : '', function(err, file) { callback(err, [file]); });
 }
 
 brackets.fs.showSaveDialog = function (title, initialPath, proposedNewFilename, callback) {
