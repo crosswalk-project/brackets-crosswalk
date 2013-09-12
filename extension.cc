@@ -10,6 +10,15 @@
 #include "extension.h"
 #include "platform.h"
 
+namespace {
+XW_Extension g_extension = 0;
+
+const struct XW_CoreInterface_1* g_core_interface;
+const struct XW_MessagingInterface_1* g_messaging_interface;
+
+struct BracketsExtension* g_brackets;
+}
+
 static picojson::value JSErrorFromPlatformError(platform::ErrorCode error_code) {
   // This works because platform.h is in sync with brackets.fs.* error
   // codes.
@@ -23,21 +32,19 @@ BracketsExtension::HandlerFunc BracketsExtension::GetHandler(const std::string& 
   return iter->second;
 }
 
-void BracketsExtensionContext::HandleMessage(CXWalkExtensionContext* self,
-                                             const char* message) {
+static void BracketsHandleMessage(XW_Instance instance, const char* message) {
   picojson::value input;
   picojson::value output;
-  
+
   picojson::parse(input, message, message + strlen(message));
   if (!input.is<picojson::object>())
     return;
-  
+
   std::string cmd = input.get("cmd").get<std::string>();
-  BracketsExtension::HandlerFunc handler =
-        reinterpret_cast<BracketsExtensionContext*>(self)->extension_->GetHandler(cmd);
+  BracketsExtension::HandlerFunc handler = g_brackets->GetHandler(cmd);
   if (!handler)
     return;
-  
+
   picojson::object& input_map = input.get<picojson::object>();
 
   output = picojson::value(picojson::object());
@@ -48,32 +55,7 @@ void BracketsExtensionContext::HandleMessage(CXWalkExtensionContext* self,
   handler(input_map, output_map);
 
   std::string result = output.serialize();
-  xwalk_extension_context_post_message(self, result.c_str());
-}
-
-void BracketsExtensionContext::Destroy(CXWalkExtensionContext* self) {
-  delete reinterpret_cast<BracketsExtensionContext*>(self);
-}
-
-BracketsExtensionContext::BracketsExtensionContext(BracketsExtension *extension)
-      : extension_(extension) {
-  destroy = &Destroy;
-  handle_message = &HandleMessage;
-}
-
-void BracketsExtension::Shutdown(CXWalkExtension* self) {
-  delete reinterpret_cast<BracketsExtension*>(self);
-}
-
-const char* BracketsExtension::GetJavascript(CXWalkExtension*) {
-  return kGeneratedSource;
-}
-
-CXWalkExtensionContext* BracketsExtension::CreateContext(CXWalkExtension* self) {
-  BracketsExtension* extension = reinterpret_cast<BracketsExtension*>(self);
-  BracketsExtensionContext* context = new BracketsExtensionContext(extension);
-
-  return reinterpret_cast<CXWalkExtensionContext*>(context);
+  g_messaging_interface->PostMessage(instance, result.c_str());
 }
 
 template <typename T> static T GetValueOrDefault(const picojson::object& object,
@@ -209,12 +191,12 @@ static void HandleShowOSFolder(const picojson::object& input,
 
 static void HandleGetPendingFilesToOpen(const picojson::object&,
                                         picojson::object& output) {
-  std::vector<std::string> result; 
+  std::vector<std::string> result;
   platform::ErrorCode error = platform::GetPendingFilesToOpen(result);
 
   picojson::value files = picojson::value(picojson::array());
   picojson::array& files_array = files.get<picojson::array>();
-  
+
   for (size_t i = 0; i < result.size(); i++)
     files_array.push_back(picojson::value(result[i]));
 
@@ -248,17 +230,37 @@ void BracketsExtension::InitializeHandlerMap() {
 }
 
 BracketsExtension::BracketsExtension() {
-  name = "brackets";
-  api_version = 1;
-  get_javascript = &GetJavascript;
-  shutdown = &Shutdown;
-  context_create = &CreateContext;
-
   InitializeHandlerMap();
 }
 
-extern "C" CXWalkExtension* xwalk_extension_init(int32_t api_version) {
-  if (api_version < 1)
-    return NULL;
-  return new BracketsExtension();
+static void BracketsShutdown(XW_Extension extension) {
+  assert(extension == g_extension);
+
+  delete g_brackets;
+
+  g_extension = 0;
+}
+
+extern "C" int32_t XW_Initialize(XW_Extension extension, XW_GetInterface get_interface) {
+  assert(g_extension == 0);
+
+  g_extension = extension;
+
+  g_core_interface = reinterpret_cast<const XW_CoreInterface *>(
+      get_interface(XW_CORE_INTERFACE));
+  g_core_interface->SetExtensionName(g_extension, "brackets");
+  g_core_interface->SetJavaScriptAPI(g_extension, kGeneratedSource);
+  g_core_interface->RegisterShutdownCallback(g_extension, BracketsShutdown);
+
+  // No need to add callbacks for Instance creation and destruction because
+  // there's no information that we need to keep on them, so we don't need to
+  // add them for now. Note, that in the future, we may have to.
+
+  g_messaging_interface = reinterpret_cast<const XW_MessagingInterface *>(
+      get_interface(XW_MESSAGING_INTERFACE));
+  g_messaging_interface->Register(g_extension, BracketsHandleMessage);
+
+  g_brackets = new BracketsExtension();
+
+  return XW_OK;
 }
